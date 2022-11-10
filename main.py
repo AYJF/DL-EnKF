@@ -73,19 +73,18 @@ def main():
     X_hist = runge(x0, n, dt, nstep, F)
     
 
+    
 
     # Observations
     Y_hist = np.zeros((nstep+1, n))
     for istep in range(nstep+1):
         error_o = np.random.randn(n)
-        Y_hist[istep,:] = X_hist[istep,:] + sigma_o*error_o[:]
+        Y_hist[istep,:] = X_hist[istep,:] + sigma_o*error_o[:] 
 
     # Observation operator
     H = np.zeros((m, n), dtype='int')
     for i in range(m):
         H[i, obs_dist*i] = 1
-        
-    print('H.shape =', H.shape)
     
     
     #########################################
@@ -104,15 +103,14 @@ def main():
     x_t[:] = X_hist[i_DA*obs_step, :]
     y_w[:] = Y_hist[i_DA*obs_step, :]
     y_o    = H@y_w
-
-    print('x_t =', x_t)
-    print('y_o =', y_o)
     
     
     # Forecast ensemble
     for k in range(N):
         error_f = sigma_f*np.random.randn(n)
         x_f_ens[:, k] = x0[:] + error_f[:]
+        
+    print(x_f_ens.shape)
 
     # Mean and covariance of forecast
     x_f_mean = np.average(x_f_ens, axis=1)
@@ -127,6 +125,8 @@ def main():
         x_a_ens = np.copy(x_f_ens)
     else:
         x_a_ens = EnSRF(x_f_ens, x_f_mean, y_o, H, n, m, N, sigma_o, obs_dist, r_local)
+    
+        
 
     # Mean and covariance of analysis
     x_a_mean = np.average(x_a_ens, axis=1)
@@ -156,6 +156,13 @@ def main():
                 
     # Inflation factor
     rho_list[i_out] = rho
+    
+    
+    print(X_t.shape)
+    print(Y_o.shape)
+    print(X_f.shape)
+    print(X_a.shape)
+    
     
     ############################################
     #   Data assimilation after initial time   #
@@ -252,13 +259,6 @@ def main():
     '   RMSE_f =', '{0:6.3f}'.format(RMSE_f_mean), '   RMSE_a =', '{0:6.3f}'.format(RMSE_a_mean), \
     '   Spread_f =', '{0:6.3f}'.format(Spread_f_mean), '   Spread_a =', '{0:6.3f}'.format(Spread_a_mean))        
     
-    # # plot lines
-    # plt.plot(y_o, label = "Observation")
-    # plt.plot(x_t, label = "True state")
-    # plt.plot(x_f_mean, label = "Forecast")
-    # plt.plot(x_a_mean, label = "Analisis")
-    # plt.legend()
-    # plt.show()
     
     ###########################################################
     #   Preparation of datasets for training and validation   #
@@ -288,96 +288,100 @@ def main():
     print('n0 =', n0)
     print('n1 =', n1)
 
-    data0   = np.zeros((N_sample, 3*nn[ 0]), dtype='float32')
-    data1   = np.zeros((N_sample, 3*nn[ 1]), dtype='float32')
+    # data0   = np.zeros((N_sample, 3*nn[ 0]), dtype='float32')
+    # data1   = np.zeros((N_sample, 3*nn[ 1]), dtype='float32')
     data2   = np.zeros((N_sample, 3*nn[ 2]), dtype='float32')
-    data3   = np.zeros((N_sample, 3*nn[ 3]), dtype='float32')
-    data4   = np.zeros((N_sample, 3*nn[ 4]), dtype='float32')
-    data5   = np.zeros((N_sample, 3*nn[ 5]), dtype='float32')
-    data6   = np.zeros((N_sample, 3*nn[ 6]), dtype='float32')
-    data7   = np.zeros((N_sample, 3*nn[ 7]), dtype='float32')
-    data8   = np.zeros((N_sample, 3*nn[ 8]), dtype='float32')
-    data9   = np.zeros((N_sample, 3*nn[ 9]), dtype='float32')
-    data10  = np.zeros((N_sample, 3*nn[10]), dtype='float32')
+    # data3   = np.zeros((N_sample, 3*nn[ 3]), dtype='float32')
+    # data4   = np.zeros((N_sample, 3*nn[ 4]), dtype='float32')
+    # data5   = np.zeros((N_sample, 3*nn[ 5]), dtype='float32')
+    # data6   = np.zeros((N_sample, 3*nn[ 6]), dtype='float32')
+    # data7   = np.zeros((N_sample, 3*nn[ 7]), dtype='float32')
+    # data8   = np.zeros((N_sample, 3*nn[ 8]), dtype='float32')
+    # data9   = np.zeros((N_sample, 3*nn[ 9]), dtype='float32')
+    # data10  = np.zeros((N_sample, 3*nn[10]), dtype='float32')
     targets = np.zeros((N_sample, 1))
+    
+    
 
-    data0 [0:N_sample,        0:  nn[ 0]] = (Y_o[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
-    data0 [0:N_sample,   nn[ 0]:2*nn[ 0]] = (X_f[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
-    data0 [0:N_sample, 2*nn[ 0]:3*nn[ 0]] = (X_a[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
+    # data0 [0:N_sample,        0:  nn[ 0]] = (Y_o[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
+    # data0 [0:N_sample,   nn[ 0]:2*nn[ 0]] = (X_f[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
+    # data0 [0:N_sample, 2*nn[ 0]:3*nn[ 0]] = (X_a[N_start:N_out+n, n0[ 0]:n1[ 0]] - X_t_mean)/X_t_std
+    
+    
 
-    data1 [0:N_sample,        0:  nn[ 1]] = (Y_o[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
-    data1 [0:N_sample,   nn[ 1]:2*nn[ 1]] = (X_f[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
-    data1 [0:N_sample, 2*nn[ 1]:3*nn[ 1]] = (X_a[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
+    # data1 [0:N_sample,        0:  nn[ 1]] = (Y_o[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
+    # data1 [0:N_sample,   nn[ 1]:2*nn[ 1]] = (X_f[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
+    # data1 [0:N_sample, 2*nn[ 1]:3*nn[ 1]] = (X_a[N_start:N_out+n, n0[ 1]:n1[ 1]] - X_t_mean)/X_t_std
 
     data2 [0:N_sample,        0:  nn[ 2]] = (Y_o[N_start:N_out+n, n0[ 2]:n1[ 2]] - X_t_mean)/X_t_std
     data2 [0:N_sample,   nn[ 2]:2*nn[ 2]] = (X_f[N_start:N_out+n, n0[ 2]:n1[ 2]] - X_t_mean)/X_t_std
     data2 [0:N_sample, 2*nn[ 2]:3*nn[ 2]] = (X_a[N_start:N_out+n, n0[ 2]:n1[ 2]] - X_t_mean)/X_t_std
 
-    data3 [0:N_sample,        0:  nn[ 3]] = (Y_o[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
-    data3 [0:N_sample,   nn[ 3]:2*nn[ 3]] = (X_f[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
-    data3 [0:N_sample, 2*nn[ 3]:3*nn[ 3]] = (X_a[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
+    # data3 [0:N_sample,        0:  nn[ 3]] = (Y_o[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
+    # data3 [0:N_sample,   nn[ 3]:2*nn[ 3]] = (X_f[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
+    # data3 [0:N_sample, 2*nn[ 3]:3*nn[ 3]] = (X_a[N_start:N_out+n, n0[ 3]:n1[ 3]] - X_t_mean)/X_t_std
 
-    data4 [0:N_sample,        0:  nn[ 4]] = (Y_o[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
-    data4 [0:N_sample,   nn[ 4]:2*nn[ 4]] = (X_f[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
-    data4 [0:N_sample, 2*nn[ 4]:3*nn[ 4]] = (X_a[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
+    # data4 [0:N_sample,        0:  nn[ 4]] = (Y_o[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
+    # data4 [0:N_sample,   nn[ 4]:2*nn[ 4]] = (X_f[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
+    # data4 [0:N_sample, 2*nn[ 4]:3*nn[ 4]] = (X_a[N_start:N_out+n, n0[ 4]:n1[ 4]] - X_t_mean)/X_t_std
 
-    data5 [0:N_sample,        0:  nn[ 5]] = (Y_o[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
-    data5 [0:N_sample,   nn[ 5]:2*nn[ 5]] = (X_f[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
-    data5 [0:N_sample, 2*nn[ 5]:3*nn[ 5]] = (X_a[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
+    # data5 [0:N_sample,        0:  nn[ 5]] = (Y_o[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
+    # data5 [0:N_sample,   nn[ 5]:2*nn[ 5]] = (X_f[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
+    # data5 [0:N_sample, 2*nn[ 5]:3*nn[ 5]] = (X_a[N_start:N_out+n, n0[ 5]:n1[ 5]] - X_t_mean)/X_t_std
 
-    data6 [0:N_sample,        0:  nn[ 6]] = (Y_o[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
-    data6 [0:N_sample,   nn[ 6]:2*nn[ 6]] = (X_f[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
-    data6 [0:N_sample, 2*nn[ 6]:3*nn[ 6]] = (X_a[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
+    # data6 [0:N_sample,        0:  nn[ 6]] = (Y_o[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
+    # data6 [0:N_sample,   nn[ 6]:2*nn[ 6]] = (X_f[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
+    # data6 [0:N_sample, 2*nn[ 6]:3*nn[ 6]] = (X_a[N_start:N_out+n, n0[ 6]:n1[ 6]] - X_t_mean)/X_t_std
 
-    data7 [0:N_sample,        0:  nn[ 7]] = (Y_o[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
-    data7 [0:N_sample,   nn[ 7]:2*nn[ 7]] = (X_f[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
-    data7 [0:N_sample, 2*nn[ 7]:3*nn[ 7]] = (X_a[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
+    # data7 [0:N_sample,        0:  nn[ 7]] = (Y_o[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
+    # data7 [0:N_sample,   nn[ 7]:2*nn[ 7]] = (X_f[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
+    # data7 [0:N_sample, 2*nn[ 7]:3*nn[ 7]] = (X_a[N_start:N_out+n, n0[ 7]:n1[ 7]] - X_t_mean)/X_t_std
 
-    data8 [0:N_sample,        0:  nn[ 8]] = (Y_o[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
-    data8 [0:N_sample,   nn[ 8]:2*nn[ 8]] = (X_f[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
-    data8 [0:N_sample, 2*nn[ 8]:3*nn[ 8]] = (X_a[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
+    # data8 [0:N_sample,        0:  nn[ 8]] = (Y_o[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
+    # data8 [0:N_sample,   nn[ 8]:2*nn[ 8]] = (X_f[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
+    # data8 [0:N_sample, 2*nn[ 8]:3*nn[ 8]] = (X_a[N_start:N_out+n, n0[ 8]:n1[ 8]] - X_t_mean)/X_t_std
 
-    data9 [0:N_sample,        0:  nn[ 9]] = (Y_o[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
-    data9 [0:N_sample,   nn[ 9]:2*nn[ 9]] = (X_f[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
-    data9 [0:N_sample, 2*nn[ 9]:3*nn[ 9]] = (X_a[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
+    # data9 [0:N_sample,        0:  nn[ 9]] = (Y_o[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
+    # data9 [0:N_sample,   nn[ 9]:2*nn[ 9]] = (X_f[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
+    # data9 [0:N_sample, 2*nn[ 9]:3*nn[ 9]] = (X_a[N_start:N_out+n, n0[ 9]:n1[ 9]] - X_t_mean)/X_t_std
 
-    data10[0:N_sample,        0:  nn[10]] = (Y_o[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
-    data10[0:N_sample,   nn[10]:2*nn[10]] = (X_f[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
-    data10[0:N_sample, 2*nn[10]:3*nn[10]] = (X_a[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
+    # data10[0:N_sample,        0:  nn[10]] = (Y_o[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
+    # data10[0:N_sample,   nn[10]:2*nn[10]] = (X_f[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
+    # data10[0:N_sample, 2*nn[10]:3*nn[10]] = (X_a[N_start:N_out+n, n0[10]:n1[10]] - X_t_mean)/X_t_std
 
-    with open('data_M10T50R00_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data0 ) 
-    with open('data_M10T50R01_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data1 )   
+    # with open('data_M10T50R00_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data0 ) 
+    # with open('data_M10T50R01_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data1 )   
     with open('data_M10T50R02_constant.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(data2 )   
-    with open('data_M10T50R03_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data3 )    
-    with open('data_M10T50R04_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data4 )    
-    with open('data_M10T50R05_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data5 )   
-    with open('data_M10T50R06_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data6 )   
-    with open('data_M10T50R07_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data7 )   
-    with open('data_M10T50R08_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data8 )  
-    with open('data_M10T50R09_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data9 )  
-    with open('data_M10T50R10_constant.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data10)
+    # with open('data_M10T50R03_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data3 )    
+    # with open('data_M10T50R04_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data4 )    
+    # with open('data_M10T50R05_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data5 )   
+    # with open('data_M10T50R06_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data6 )   
+    # with open('data_M10T50R07_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data7 )   
+    # with open('data_M10T50R08_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data8 )  
+    # with open('data_M10T50R09_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data9 )  
+    # with open('data_M10T50R10_constant.csv', 'w', newline='') as file:
+    #     writer = csv.writer(file)
+    #     writer.writerows(data10)
                     
     targets[0:N_sample, 0] = (X_t[N_start:N_out+n, r_extr] - X_t_mean)/X_t_std  
     with open('targets_R00.csv', 'w', newline='') as file:
@@ -389,8 +393,8 @@ def main():
         writer = csv.writer(file)
         writer.writerow(factor)
 
-    print('data0 =',   '\n', data0  [0:n, :])
-    print('targets =', '\n', targets[0:n, 0])
+    # print('data0 =',   '\n', data0  [0:n, :])
+    # print('targets =', '\n', targets[0:n, 0])
     
 
 
